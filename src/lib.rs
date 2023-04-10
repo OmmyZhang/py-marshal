@@ -227,6 +227,7 @@ impl From<&ObjHashable> for Obj {
                 re: re.into_inner(),
                 im: im.into_inner(),
             }),
+            ObjHashable::Bytes(x) => Self::Bytes(Arc::clone(x)),
             ObjHashable::String(x) => Self::String(Arc::clone(x)),
             ObjHashable::Tuple(x) => Self::Tuple(Arc::new(x.iter().map(Self::from).collect())),
             ObjHashable::FrozenSet(x) => Self::FrozenSet(Arc::new(x.inner().clone())),
@@ -416,6 +417,7 @@ pub enum ObjHashable {
     Long(Arc<BigInt>),
     Float(OrderedFloat<f64>),
     Complex(Complex<OrderedFloat<f64>>),
+    Bytes(Arc<Vec<u8>>),
     String(Arc<String>),
     Tuple(Arc<Vec<ObjHashable>>),
     FrozenSet(Arc<HashableHashSet<ObjHashable>>),
@@ -436,6 +438,7 @@ impl TryFrom<&Obj> for ObjHashable {
                 re: OrderedFloat(*re),
                 im: OrderedFloat(*im),
             })),
+            Obj::Bytes(x) => Ok(Self::Bytes(Arc::clone(x))),
             Obj::String(x) => Ok(Self::String(Arc::clone(x))),
             Obj::Tuple(x) => Ok(Self::Tuple(Arc::new(
                 x.iter()
@@ -466,6 +469,7 @@ impl fmt::Debug for ObjHashable {
                     im: x.im.0,
                 },
             ),
+            Self::Bytes(x) => python_bytes_repr(f, x),
             Self::String(x) => python_string_repr(f, x),
             Self::Tuple(x) => python_tuple_hashable_repr(f, x),
             Self::FrozenSet(x) => python_frozenset_repr(f, &x.0),
